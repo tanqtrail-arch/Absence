@@ -29,6 +29,9 @@ declare const liff: any;
 
 type ViewType = 'calendar' | 'dashboard';
 
+// LIFF IDを環境変数から取得（Vite用）
+const LIFF_ID = import.meta.env.VITE_LIFF_ID || '';
+
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<ViewType>('calendar');
   const [events, setEvents] = useState<any[]>([]);
@@ -43,19 +46,45 @@ const App: React.FC = () => {
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
+  const [liffError, setLiffError] = useState<string | null>(null);
 
   useEffect(() => {
     const initLiff = async () => {
-      if (typeof liff !== 'undefined') {
-        try {
-          await liff.init({ liffId: "YOUR_LIFF_ID_HERE" }); 
-          if (liff.isLoggedIn()) {
-            const profile = await liff.getProfile();
-            setUserName(profile.displayName);
+      // LIFF SDKが読み込まれているか確認
+      if (typeof liff === 'undefined') {
+        console.warn('LIFF SDK not loaded');
+        return;
+      }
+
+      // LIFF IDが設定されているか確認
+      if (!LIFF_ID) {
+        const errorMsg = 'LIFF ID が設定されていません。環境変数 VITE_LIFF_ID を設定してください。';
+        console.error(errorMsg);
+        setLiffError(errorMsg);
+        return;
+      }
+
+      try {
+        await liff.init({ liffId: LIFF_ID });
+
+        // LINE内ブラウザでない場合、LINEログインを促す
+        if (!liff.isLoggedIn()) {
+          // 外部ブラウザの場合はログインなしで続行（Guestとして）
+          if (!liff.isInClient()) {
+            console.log('Running outside LINE app - continuing as guest');
+            return;
           }
-        } catch (error) {
-          console.error('LIFF initialization failed', error);
         }
+
+        // ログイン済みの場合はプロフィールを取得
+        if (liff.isLoggedIn()) {
+          const profile = await liff.getProfile();
+          setUserName(profile.displayName);
+        }
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'LIFF初期化に失敗しました';
+        console.error('LIFF initialization failed:', error);
+        setLiffError(errorMsg);
       }
     };
     initLiff();
@@ -261,13 +290,29 @@ const App: React.FC = () => {
 
           <div className="hidden sm:flex items-center gap-3">
             <div className="text-right">
-              <span className="text-xs font-bold text-[#06C755] flex items-center justify-end gap-1"><MessageCircle size={10} /> LINE連携</span>
+              <span className={`text-xs font-bold flex items-center justify-end gap-1 ${liffError ? 'text-amber-500' : 'text-[#06C755]'}`}>
+                <MessageCircle size={10} /> {liffError ? 'LINE未接続' : 'LINE連携'}
+              </span>
               <p className="text-[10px] text-slate-400 font-medium">{userName || 'Guest'}</p>
             </div>
           </div>
         </header>
 
         <div className="p-4 lg:p-8 space-y-6">
+          {/* LIFF エラー表示 */}
+          {liffError && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+              <AlertCircle className="text-amber-500 flex-shrink-0 mt-0.5" size={20} />
+              <div>
+                <h4 className="font-bold text-amber-800 text-sm">LINE連携エラー</h4>
+                <p className="text-amber-700 text-xs mt-1">{liffError}</p>
+                <p className="text-amber-600 text-[10px] mt-2">
+                  LINE内で開く場合は、正しいLIFF URLからアクセスしてください。
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="lg:hidden">
             <button 
               onClick={handleAdminToggle} 
