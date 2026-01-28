@@ -28,7 +28,7 @@ import {
 
 declare const liff: any;
 
-type ViewType = 'calendar' | 'dashboard' | 'holidays';
+type ViewType = 'calendar' | 'holidays';
 
 // LIFF IDを環境変数から取得（Vite用）
 const LIFF_ID = import.meta.env.VITE_LIFF_ID || '';
@@ -136,7 +136,6 @@ const App: React.FC = () => {
   const handleAdminToggle = () => {
     if (isAdminMode) {
       setIsAdminMode(false);
-      if (activeView === 'dashboard') setActiveView('calendar');
     } else {
       setIsPasswordModalOpen(true);
       setPasswordError(false);
@@ -217,15 +216,6 @@ const App: React.FC = () => {
     return rawEvents.filter(e => e.start_at.startsWith(todayStr));
   }, [rawEvents]);
 
-  const StatusBadge: React.FC<{status: string}> = ({ status }) => {
-    switch (status) {
-      case 'pending': return <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full border border-amber-100"><Clock size={10} /> 送信済</span>;
-      case 'approved': return <span className="flex items-center gap-1 text-[10px] font-bold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full border border-emerald-100"><CheckCircle size={10} /> 承認済</span>;
-      case 'rejected': return <span className="flex items-center gap-1 text-[10px] font-bold bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full border border-rose-100"><AlertCircle size={10} /> 差戻</span>;
-      default: return null;
-    }
-  };
-
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       {/* Sidebar */}
@@ -237,17 +227,17 @@ const App: React.FC = () => {
           <span className="text-xl font-bold tracking-tight text-slate-900">EduSync</span>
         </div>
         <nav className="flex-1 px-4 space-y-1 mt-4">
-          <NavItem 
-            icon={<CalendarIcon size={20} />} 
-            label="カレンダー" 
-            active={activeView === 'calendar'} 
+          <NavItem
+            icon={<CalendarIcon size={20} />}
+            label="カレンダー"
+            active={activeView === 'calendar'}
             onClick={() => setActiveView('calendar')}
           />
-          <NavItem 
-            icon={<LayoutDashboard size={20} />} 
-            label="欠席連絡履歴" 
-            active={activeView === 'dashboard'} 
-            onClick={() => setActiveView('dashboard')}
+          <NavItem
+            icon={<FileText size={20} />}
+            label="休講カレンダー"
+            active={activeView === 'holidays'}
+            onClick={() => setActiveView('holidays')}
           />
         </nav>
         <div className="p-4 mx-4 mb-4 rounded-xl border border-slate-200 bg-slate-50">
@@ -264,7 +254,7 @@ const App: React.FC = () => {
           <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
             <div className="flex items-center gap-2">
               <h1 className="text-sm sm:text-lg font-bold text-slate-800 whitespace-nowrap">
-                {activeView === 'calendar' ? 'カレンダー' : activeView === 'dashboard' ? '管理ダッシュボード' : '休講カレンダー'}
+                {activeView === 'calendar' ? 'カレンダー' : '休講カレンダー'}
               </h1>
               {isAdminMode && (
                 <span className="text-[9px] bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">ADMIN</span>
@@ -272,19 +262,12 @@ const App: React.FC = () => {
             </div>
 
             <div className="flex items-center bg-slate-200/50 p-1 rounded-full scale-90 sm:scale-100">
-              <button 
+              <button
                 onClick={() => setActiveView('calendar')}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold transition-all ${activeView === 'calendar' ? (isAdminMode ? 'bg-rose-600 text-white shadow-sm' : 'bg-blue-600 text-white shadow-sm') : 'text-slate-500 hover:text-slate-700'}`}
               >
                 <CalendarIcon size={12} />
                 <span>予定</span>
-              </button>
-              <button
-                onClick={() => setActiveView('dashboard')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold transition-all ${activeView === 'dashboard' ? (isAdminMode ? 'bg-rose-600 text-white shadow-sm' : 'bg-blue-600 text-white shadow-sm') : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                <ClipboardList size={12} />
-                <span>履歴</span>
               </button>
               <button
                 onClick={() => setActiveView('holidays')}
@@ -392,55 +375,6 @@ const App: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
-          ) : activeView === 'dashboard' ? (
-            <div className="max-w-4xl mx-auto space-y-4">
-              <div className="flex items-center justify-between mb-2 px-2">
-                <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                  <ClipboardList size={14} /> 欠席連絡ダッシュボード
-                </h2>
-                <div className="text-[10px] font-bold text-slate-400">計 {reports.length} 件</div>
-              </div>
-
-              {reports.length > 0 ? (
-                reports.map((report) => (
-                  <div key={report.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hover:border-blue-200 transition-all">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-50 flex flex-col items-center justify-center border border-slate-100 flex-shrink-0">
-                          <span className="text-[9px] font-black text-slate-400 leading-none">
-                            {report.absence_date ? new Date(report.absence_date).getMonth() + 1 : '??'}月
-                          </span>
-                          <span className="text-lg font-bold text-slate-800 leading-tight">
-                            {report.absence_date ? new Date(report.absence_date).getDate() : '??'}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-bold text-slate-800">{report.event_title || '終日欠席'}</h4>
-                            <StatusBadge status={report.status} />
-                          </div>
-                          <div className="flex items-center gap-3 text-[11px] font-bold text-slate-500">
-                            <span className="flex items-center gap-1 text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">{report.reason}</span>
-                            <span className="text-slate-300">|</span>
-                            <span className="flex items-center gap-1"><Clock size={12} /> {new Date(report.created_at).toLocaleDateString()} 送信</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs italic text-slate-600 line-clamp-2 leading-relaxed">
-                        "{report.message}"
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="bg-white p-12 rounded-3xl shadow-sm border border-slate-200 text-center space-y-4">
-                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-200">
-                    <ClipboardList size={32} />
-                  </div>
-                  <p className="font-bold text-slate-800">連絡履歴はまだありません</p>
-                </div>
-              )}
             </div>
           ) : (
             <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
