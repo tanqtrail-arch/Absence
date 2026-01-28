@@ -1,7 +1,7 @@
 
 import { CalendarEvent, AttendanceReport } from '../types';
 
-const EVENTS_KEY = 'edusync_events_v2';
+const EVENTS_KEY = 'edusync_events_v3';
 const REPORTS_KEY = 'edusync_reports_v2';
 
 const getDatesForDayOfWeek = (dayOfWeek: number, weeksCount: number = 52) => {
