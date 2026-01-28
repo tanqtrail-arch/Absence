@@ -28,8 +28,8 @@ const generateInitialEvents = (): CalendarEvent[] => {
   const events: CalendarEvent[] = [];
   
   getDatesForDayOfWeek(1).forEach((date, idx) => {
-    events.push({ id: `mon-1-${idx}`, title: "探究スターター", start_at: `${date}T16:20:00`, end_at: `${date}T17:20:00`, event_type: "class", is_cancelled: false });
-    events.push({ id: `mon-2-${idx}`, title: "探究ベーシック", start_at: `${date}T17:50:00`, end_at: `${date}T19:30:00`, event_type: "class", is_cancelled: false });
+    events.push({ id: `mon-1-${idx}`, title: "探究スターター", start_at: `${date}T16:00:00`, end_at: `${date}T17:00:00`, event_type: "class", is_cancelled: false });
+    events.push({ id: `mon-2-${idx}`, title: "探究ベーシック", start_at: `${date}T18:00:00`, end_at: `${date}T19:40:00`, event_type: "class", is_cancelled: false });
   });
 
   getDatesForDayOfWeek(2).forEach((date, idx) => {
