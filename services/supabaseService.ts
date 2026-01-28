@@ -4,7 +4,7 @@ import { CalendarEvent, AttendanceReport } from '../types';
 const EVENTS_KEY = 'edusync_events_v2';
 const REPORTS_KEY = 'edusync_reports_v2';
 
-const getDatesForDayOfWeek = (dayOfWeek: number, weeksCount: number = 20) => {
+const getDatesForDayOfWeek = (dayOfWeek: number, weeksCount: number = 52) => {
   const dates: string[] = [];
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
