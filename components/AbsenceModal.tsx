@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { CalendarEvent, AttendanceReport } from '../types';
-import { generatePoliteMessage } from '../services/geminiService';
-import { Loader2, Sparkles, X, AlertCircle, CheckCircle2, Calendar, Send, Edit3 } from 'lucide-react';
+import { Loader2, X, AlertCircle, CheckCircle2, Calendar, Send, Edit3 } from 'lucide-react';
 
 interface AbsenceModalProps {
   target: {
@@ -19,7 +18,6 @@ const AbsenceModal: React.FC<AbsenceModalProps> = ({ target, onClose, onSubmit }
   const [profile, setProfile] = useState<{ displayName: string; userId: string } | null>(null);
   const [reason, setReason] = useState("体調不良");
   const [message, setMessage] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInLiff, setIsInLiff] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -49,14 +47,6 @@ const AbsenceModal: React.FC<AbsenceModalProps> = ({ target, onClose, onSubmit }
     return `[欠席連絡]\n${title}\n【日付】${dateStr}\n【理由】${reason}\n\n${msg}\n\nよろしくお願いいたします。`;
   };
 
-  const handleGenerateAI = async () => {
-    setIsGenerating(true);
-    const targetTitle = event ? event.title : "終日（全授業）";
-    const aiMessage = await generatePoliteMessage(reason, targetTitle, dateStr);
-    setMessage(aiMessage);
-    setIsGenerating(false);
-  };
-
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message) return;
@@ -78,24 +68,39 @@ const AbsenceModal: React.FC<AbsenceModalProps> = ({ target, onClose, onSubmit }
       };
       await onSubmit(report);
 
+      // クリップボードにコピー
+      await navigator.clipboard.writeText(finalDraft);
+      setCopied(true);
+
+      // LIFF環境の場合は共有ピッカーを試みる
       if (isInLiff) {
-        if (liff.isApiAvailable('shareTargetPicker')) {
-          await liff.shareTargetPicker([{ type: 'text', text: finalDraft }]);
-        } else {
-          await liff.sendMessages([{ type: 'text', text: finalDraft }]);
+        try {
+          if (liff.isApiAvailable('shareTargetPicker')) {
+            await liff.shareTargetPicker([{ type: 'text', text: finalDraft }]);
+          }
+        } catch (liffError) {
+          console.log('LIFF share skipped:', liffError);
         }
-        liff.closeWindow();
-      } else {
-        await navigator.clipboard.writeText(finalDraft);
+      }
+
+      setTimeout(() => {
+        setCopied(false);
+        onClose();
+      }, 2000);
+    } catch (error) {
+      console.error('Submit Error:', error);
+      // エラーでもクリップボードにコピーを試みる
+      try {
+        const fallbackMessage = createFullMessage(message);
+        await navigator.clipboard.writeText(fallbackMessage);
         setCopied(true);
         setTimeout(() => {
           setCopied(false);
           onClose();
         }, 2000);
+      } catch {
+        alert('送信処理中にエラーが発生しました。');
       }
-    } catch (error) {
-      console.error('Submit Error:', error);
-      alert('送信処理中にエラーが発生しました。');
     } finally {
       setIsSubmitting(false);
     }
@@ -135,28 +140,16 @@ const AbsenceModal: React.FC<AbsenceModalProps> = ({ target, onClose, onSubmit }
                 <option value="体調不良">体調不良</option>
                 <option value="学校行事">学校行事</option>
                 <option value="家庭の用事">家庭の用事</option>
-                <option value="公欠">公欠</option>
                 <option value="その他">その他</option>
               </select>
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-bold text-slate-700">詳細メッセージ</label>
-                <button 
-                  type="button"
-                  onClick={handleGenerateAI}
-                  disabled={isGenerating}
-                  className="text-[10px] flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 font-bold rounded-full hover:bg-indigo-100 transition-colors disabled:opacity-40 shadow-sm"
-                >
-                  {isGenerating ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                  AIで清書
-                </button>
-              </div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">詳細メッセージ</label>
               <textarea
                 required
                 className="w-full border-2 border-slate-100 p-3 rounded-xl h-32 focus:border-blue-500 focus:ring-0 outline-none transition-all resize-none text-sm leading-relaxed"
-                placeholder="理由の詳細を入力してください（AI清書も利用可能）"
+                placeholder="理由の詳細を入力してください"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
