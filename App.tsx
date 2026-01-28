@@ -6,10 +6,10 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { supabaseService } from "./services/supabaseService";
 import { CalendarEvent, AttendanceReport } from "./types";
 import AbsenceModal from "./components/AbsenceModal";
-import {
-  Calendar as CalendarIcon,
-  LayoutDashboard,
-  BookOpen,
+import { 
+  Calendar as CalendarIcon, 
+  LayoutDashboard, 
+  BookOpen, 
   Loader2,
   MessageCircle,
   ChevronRight,
@@ -22,13 +22,12 @@ import {
   Settings2,
   Lock,
   ShieldCheck,
-  X,
-  FileText
+  X
 } from "lucide-react";
 
 declare const liff: any;
 
-type ViewType = 'calendar' | 'dashboard' | 'holidays';
+type ViewType = 'calendar' | 'dashboard';
 
 // LIFF IDを環境変数から取得（Vite用）
 const LIFF_ID = import.meta.env.VITE_LIFF_ID || '';
@@ -264,7 +263,7 @@ const App: React.FC = () => {
           <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
             <div className="flex items-center gap-2">
               <h1 className="text-sm sm:text-lg font-bold text-slate-800 whitespace-nowrap">
-                {activeView === 'calendar' ? 'カレンダー' : activeView === 'dashboard' ? '管理ダッシュボード' : '休講カレンダー'}
+                {activeView === 'calendar' ? 'カレンダー' : '管理ダッシュボード'}
               </h1>
               {isAdminMode && (
                 <span className="text-[9px] bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">ADMIN</span>
@@ -279,19 +278,12 @@ const App: React.FC = () => {
                 <CalendarIcon size={12} />
                 <span>予定</span>
               </button>
-              <button
+              <button 
                 onClick={() => setActiveView('dashboard')}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold transition-all ${activeView === 'dashboard' ? (isAdminMode ? 'bg-rose-600 text-white shadow-sm' : 'bg-blue-600 text-white shadow-sm') : 'text-slate-500 hover:text-slate-700'}`}
               >
                 <ClipboardList size={12} />
                 <span>履歴</span>
-              </button>
-              <button
-                onClick={() => setActiveView('holidays')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold transition-all ${activeView === 'holidays' ? (isAdminMode ? 'bg-rose-600 text-white shadow-sm' : 'bg-blue-600 text-white shadow-sm') : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                <FileText size={12} />
-                <span>休講</span>
               </button>
             </div>
           </div>
@@ -393,7 +385,7 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
-          ) : activeView === 'dashboard' ? (
+          ) : (
             <div className="max-w-4xl mx-auto space-y-4">
               <div className="flex items-center justify-between mb-2 px-2">
                 <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
@@ -441,20 +433,6 @@ const App: React.FC = () => {
                   <p className="font-bold text-slate-800">連絡履歴はまだありません</p>
                 </div>
               )}
-            </div>
-          ) : (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="p-4 border-b border-slate-100">
-                <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <FileText size={16} className="text-blue-500" />
-                  2026年度 休講カレンダー
-                </h2>
-              </div>
-              <iframe
-                src="/Absence/calendar.pdf"
-                className="w-full h-[70vh] min-h-[500px]"
-                title="休講カレンダー"
-              />
             </div>
           )}
         </div>
