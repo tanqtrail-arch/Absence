@@ -261,19 +261,19 @@ const App: React.FC = () => {
               )}
             </div>
 
-            <div className="flex items-center bg-slate-200/50 p-1 rounded-full scale-90 sm:scale-100">
+            <div className="flex items-center bg-slate-100 p-1.5 rounded-xl shadow-md border border-slate-200">
               <button
                 onClick={() => setActiveView('calendar')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold transition-all ${activeView === 'calendar' ? (isAdminMode ? 'bg-rose-600 text-white shadow-sm' : 'bg-blue-600 text-white shadow-sm') : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeView === 'calendar' ? (isAdminMode ? 'bg-rose-500 text-white shadow-lg' : 'bg-blue-500 text-white shadow-lg') : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800'}`}
               >
-                <CalendarIcon size={12} />
+                <CalendarIcon size={18} />
                 <span>予定</span>
               </button>
               <button
                 onClick={() => setActiveView('holidays')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold transition-all ${activeView === 'holidays' ? (isAdminMode ? 'bg-rose-600 text-white shadow-sm' : 'bg-blue-600 text-white shadow-sm') : 'text-slate-500 hover:text-slate-700'}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeView === 'holidays' ? (isAdminMode ? 'bg-rose-500 text-white shadow-lg' : 'bg-blue-500 text-white shadow-lg') : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800'}`}
               >
-                <FileText size={12} />
+                <FileText size={18} />
                 <span>休講</span>
               </button>
             </div>
