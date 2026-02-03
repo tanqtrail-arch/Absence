@@ -271,7 +271,7 @@ const App: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveView('holidays')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeView === 'holidays' ? (isAdminMode ? 'bg-rose-500 text-white shadow-lg' : 'bg-blue-500 text-white shadow-lg') : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800'}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeView === 'holidays' ? (isAdminMode ? 'bg-rose-500 text-white shadow-lg' : 'bg-orange-500 text-white shadow-lg') : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800'}`}
               >
                 <FileText size={18} />
                 <span>休講</span>
