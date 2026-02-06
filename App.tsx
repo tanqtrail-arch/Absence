@@ -330,7 +330,7 @@ const App: React.FC = () => {
           </div>
 
           {activeView === 'interview' ? (
-            <InterviewBooking userName={userName} />
+            <InterviewBooking userName={userName} isAdminMode={isAdminMode} />
           ) : activeView === 'calendar' ? (
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
               <div className="xl:col-span-3 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">

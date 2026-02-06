@@ -1,9 +1,10 @@
 
-import { CalendarEvent, AttendanceReport, InterviewBooking } from '../types';
+import { CalendarEvent, AttendanceReport, InterviewBooking, InterviewSlot } from '../types';
 
 const EVENTS_KEY = 'edusync_events_v3';
 const REPORTS_KEY = 'edusync_reports_v2';
-const BOOKINGS_KEY = 'edusync_interview_bookings_v1';
+const BOOKINGS_KEY = 'edusync_interview_bookings_v2';
+const SLOTS_KEY = 'edusync_interview_slots_v1';
 
 const getDatesForDayOfWeek = (dayOfWeek: number, weeksCount: number = 52) => {
   const dates: string[] = [];
@@ -97,6 +98,33 @@ export const supabaseService = {
     return true;
   },
 
+  // --- Interview Slots (Admin) ---
+  fetchInterviewSlots: async (): Promise<InterviewSlot[]> => {
+    const stored = localStorage.getItem(SLOTS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  },
+
+  toggleInterviewSlot: async (date: string, time: string): Promise<InterviewSlot[]> => {
+    const slots = await supabaseService.fetchInterviewSlots();
+    const existing = slots.find(s => s.date === date && s.time === time);
+    let updated: InterviewSlot[];
+    if (existing) {
+      if (existing.is_booked) return slots;
+      updated = slots.filter(s => s.id !== existing.id);
+    } else {
+      const newSlot: InterviewSlot = {
+        id: `slot-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        date,
+        time,
+        is_booked: false,
+      };
+      updated = [...slots, newSlot];
+    }
+    localStorage.setItem(SLOTS_KEY, JSON.stringify(updated));
+    return updated;
+  },
+
+  // --- Interview Bookings (Parent) ---
   fetchInterviewBookings: async (): Promise<InterviewBooking[]> => {
     const stored = localStorage.getItem(BOOKINGS_KEY);
     return stored ? JSON.parse(stored) : [];
@@ -111,6 +139,17 @@ export const supabaseService = {
       created_at: new Date().toISOString(),
     };
     localStorage.setItem(BOOKINGS_KEY, JSON.stringify([newBooking, ...bookings]));
+
+    // Mark the slot as booked
+    const slots = await supabaseService.fetchInterviewSlots();
+    const slotToBook = slots.find(s => s.date === booking.preferred_date && s.time === booking.preferred_time);
+    if (slotToBook) {
+      const updatedSlots = slots.map(s =>
+        s.id === slotToBook.id ? { ...s, is_booked: true, booking_id: newBooking.id } : s
+      );
+      localStorage.setItem(SLOTS_KEY, JSON.stringify(updatedSlots));
+    }
+
     return newBooking;
   },
 
@@ -118,6 +157,14 @@ export const supabaseService = {
     const bookings = await supabaseService.fetchInterviewBookings();
     const updated = bookings.map(b => b.id === id ? { ...b, status: 'cancelled' as const } : b);
     localStorage.setItem(BOOKINGS_KEY, JSON.stringify(updated));
+
+    // Free the slot
+    const slots = await supabaseService.fetchInterviewSlots();
+    const updatedSlots = slots.map(s =>
+      s.booking_id === id ? { ...s, is_booked: false, booking_id: undefined } : s
+    );
+    localStorage.setItem(SLOTS_KEY, JSON.stringify(updatedSlots));
+
     return updated;
   }
 };

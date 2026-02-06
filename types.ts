@@ -26,14 +26,22 @@ export interface AttendanceReport {
   created_at: string;
 }
 
+export interface InterviewSlot {
+  id: string;
+  date: string;
+  time: string;
+  is_booked: boolean;
+  booking_id?: string;
+}
+
 export interface InterviewBooking {
   id: string;
-  student_name: string;
-  student_contact: string;
+  parent_name: string;
+  child_growth: string;
+  consultation_topic: string;
+  message: string;
   preferred_date: string;
   preferred_time: string;
-  topic: string;
-  message: string;
   status: "pending" | "confirmed" | "cancelled";
   created_at: string;
 }
