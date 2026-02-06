@@ -1,8 +1,9 @@
 
-import { CalendarEvent, AttendanceReport } from '../types';
+import { CalendarEvent, AttendanceReport, InterviewBooking } from '../types';
 
 const EVENTS_KEY = 'edusync_events_v3';
 const REPORTS_KEY = 'edusync_reports_v2';
+const BOOKINGS_KEY = 'edusync_interview_bookings_v1';
 
 const getDatesForDayOfWeek = (dayOfWeek: number, weeksCount: number = 52) => {
   const dates: string[] = [];
@@ -94,5 +95,29 @@ export const supabaseService = {
     const newReport = { ...report, id: Date.now().toString() };
     localStorage.setItem(REPORTS_KEY, JSON.stringify([newReport, ...reports]));
     return true;
+  },
+
+  fetchInterviewBookings: async (): Promise<InterviewBooking[]> => {
+    const stored = localStorage.getItem(BOOKINGS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  },
+
+  submitInterviewBooking: async (booking: Omit<InterviewBooking, 'id' | 'status' | 'created_at'>): Promise<InterviewBooking> => {
+    const bookings = await supabaseService.fetchInterviewBookings();
+    const newBooking: InterviewBooking = {
+      ...booking,
+      id: Date.now().toString(),
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    };
+    localStorage.setItem(BOOKINGS_KEY, JSON.stringify([newBooking, ...bookings]));
+    return newBooking;
+  },
+
+  cancelInterviewBooking: async (id: string): Promise<InterviewBooking[]> => {
+    const bookings = await supabaseService.fetchInterviewBookings();
+    const updated = bookings.map(b => b.id === id ? { ...b, status: 'cancelled' as const } : b);
+    localStorage.setItem(BOOKINGS_KEY, JSON.stringify(updated));
+    return updated;
   }
 };

@@ -26,6 +26,18 @@ export interface AttendanceReport {
   created_at: string;
 }
 
+export interface InterviewBooking {
+  id: string;
+  student_name: string;
+  student_contact: string;
+  preferred_date: string;
+  preferred_time: string;
+  topic: string;
+  message: string;
+  status: "pending" | "confirmed" | "cancelled";
+  created_at: string;
+}
+
 export interface User {
   id: string;
   name: string;

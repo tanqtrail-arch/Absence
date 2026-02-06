@@ -6,6 +6,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { supabaseService } from "./services/supabaseService";
 import { CalendarEvent, AttendanceReport } from "./types";
 import AbsenceModal from "./components/AbsenceModal";
+import InterviewBooking from "./components/InterviewBooking";
 import {
   Calendar as CalendarIcon,
   LayoutDashboard,
@@ -23,12 +24,13 @@ import {
   Lock,
   ShieldCheck,
   X,
-  FileText
+  FileText,
+  UserCheck
 } from "lucide-react";
 
 declare const liff: any;
 
-type ViewType = 'calendar' | 'holidays';
+type ViewType = 'calendar' | 'holidays' | 'interview';
 
 // LIFF IDを環境変数から取得（Vite用）
 const LIFF_ID = import.meta.env.VITE_LIFF_ID || '';
@@ -239,6 +241,12 @@ const App: React.FC = () => {
             active={activeView === 'holidays'}
             onClick={() => setActiveView('holidays')}
           />
+          <NavItem
+            icon={<UserCheck size={20} />}
+            label="面談予約"
+            active={activeView === 'interview'}
+            onClick={() => setActiveView('interview')}
+          />
         </nav>
         <div className="p-4 mx-4 mb-4 rounded-xl border border-slate-200 bg-slate-50">
           <button onClick={handleAdminToggle} className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${isAdminMode ? 'bg-rose-600 text-white shadow-md' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'}`}>
@@ -254,7 +262,7 @@ const App: React.FC = () => {
           <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
             <div className="flex items-center gap-2">
               <h1 className="text-sm sm:text-lg font-bold text-slate-800 whitespace-nowrap">
-                {activeView === 'calendar' ? 'カレンダー' : '休講カレンダー'}
+                {activeView === 'calendar' ? 'カレンダー' : activeView === 'holidays' ? '休講カレンダー' : '面談予約'}
               </h1>
               {isAdminMode && (
                 <span className="text-[9px] bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">ADMIN</span>
@@ -275,6 +283,13 @@ const App: React.FC = () => {
               >
                 <FileText size={18} />
                 <span>休講</span>
+              </button>
+              <button
+                onClick={() => setActiveView('interview')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeView === 'interview' ? (isAdminMode ? 'bg-rose-500 text-white shadow-lg' : 'bg-blue-500 text-white shadow-lg') : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800'}`}
+              >
+                <UserCheck size={18} />
+                <span>面談</span>
               </button>
             </div>
           </div>
@@ -314,7 +329,9 @@ const App: React.FC = () => {
             </button>
           </div>
 
-          {activeView === 'calendar' ? (
+          {activeView === 'interview' ? (
+            <InterviewBooking userName={userName} />
+          ) : activeView === 'calendar' ? (
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
               <div className="xl:col-span-3 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                 {isAdminMode && (
